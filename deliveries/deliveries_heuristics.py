@@ -21,7 +21,8 @@ class MaxAirDistHeuristic(HeuristicFunction):
         assert isinstance(self.problem, RelaxedDeliveriesProblem)
         assert isinstance(state, RelaxedDeliveriesState)
 
-        raise NotImplemented()  # TODO: remove!
+        return max([state.current_location.calc_air_distance_from(
+            junction) for junction in self.problem.drop_points.difference(state.dropped_so_far)]+[0])
 
 
 class MSTAirDistHeuristic(HeuristicFunction):
@@ -30,13 +31,15 @@ class MSTAirDistHeuristic(HeuristicFunction):
     def __init__(self, problem: GraphProblem):
         super(MSTAirDistHeuristic, self).__init__(problem)
         assert isinstance(self.problem, RelaxedDeliveriesProblem)
-        self._junctions_distances_cache: Dict[FrozenSet[Junction], float] = dict()
+        self._junctions_distances_cache: Dict[FrozenSet[Junction], float] = dict(
+        )
 
     def estimate(self, state: GraphProblemState) -> float:
         assert isinstance(self.problem, RelaxedDeliveriesProblem)
         assert isinstance(state, RelaxedDeliveriesState)
 
-        remained_drop_points = set(self.problem.drop_points - state.dropped_so_far)
+        remained_drop_points = set(
+            self.problem.drop_points - state.dropped_so_far)
         remained_drop_points.add(state.current_location)
         return self._calculate_junctions_air_dist_mst_weight(remained_drop_points)
 
@@ -50,13 +53,16 @@ class MSTAirDistHeuristic(HeuristicFunction):
 
     def _calculate_junctions_air_dist_mst_weight(self, junctions: Set[Junction]) -> float:
         nr_junctions = len(junctions)
-        idx_to_junction = {idx: junction for idx, junction in enumerate(junctions)}
-        distances_matrix = np.zeros((nr_junctions, nr_junctions), dtype=np.float)
+        idx_to_junction = {idx: junction for idx,
+                           junction in enumerate(junctions)}
+        distances_matrix = np.zeros(
+            (nr_junctions, nr_junctions), dtype=np.float)
         for j1_idx in range(nr_junctions):
             for j2_idx in range(nr_junctions):
                 if j1_idx == j2_idx:
                     continue
-                dist = self._get_distance_between_junctions(idx_to_junction[j1_idx], idx_to_junction[j2_idx])
+                dist = self._get_distance_between_junctions(
+                    idx_to_junction[j1_idx], idx_to_junction[j2_idx])
                 distances_matrix[j1_idx, j2_idx] = dist
                 distances_matrix[j2_idx, j1_idx] = dist
         return mst(distances_matrix).sum()
@@ -76,4 +82,3 @@ class RelaxedDeliveriesHeuristic(HeuristicFunction):
         assert isinstance(state, StrictDeliveriesState)
 
         raise NotImplemented()  # TODO: remove!
-

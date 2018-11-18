@@ -1,0 +1,7 @@
+.vscode/*
+.idea/*
+deliveries/__pycache__
+framework/__pycache__
+framework/graph_search/__pycache__
+framework/graph_search/utils/__pycache__
+framework/ways/__pycache__

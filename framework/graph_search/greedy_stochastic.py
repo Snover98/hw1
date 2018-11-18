@@ -21,26 +21,20 @@ class GreedyStochastic(BestFirstSearch):
         self.heuristic_function = self.heuristic_function_type(problem)
 
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
-        """
-        TODO: implement this method!
-        """
-
-        raise NotImplemented()  # TODO: remove!
+        if not (self.open.has_state(successor_node.state) or self.close.has_state(successor_node)):
+            self.open.push_node(successor_node)
 
     def _calc_node_expanding_priority(self, search_node: SearchNode) -> float:
         """
-        TODO: implement this method!
         Remember: `GreedyStochastic` is greedy.
         """
-
-        raise NotImplemented()  # TODO: remove!
+        return self.heuristic_function.estimate(search_node.state)
 
     def _extract_next_search_node_to_expand(self) -> Optional[SearchNode]:
         """
         Extracts the next node to expand from the open queue,
          using the stochastic method to choose out of the N
          best items from open.
-        TODO: implement this method!
         Use `np.random.choice(...)` whenever you need to randomly choose
          an item from an array of items given a probabilities array `p`.
         You can read the documentation of `np.random.choice(...)` and
@@ -50,5 +44,21 @@ class GreedyStochastic(BestFirstSearch):
                 of these popped items. The other items have to be
                 pushed again into that queue.
         """
+        if(self.open.is_empty()):
+            return None
 
-        raise NotImplemented()  # TODO: remove!
+        states = [self.open.pop_next_node()
+                  for i in range(min(self.N, len(self.open)))]
+
+        for state in [state for state in states if state.expanding_priority == 0]:
+            return state
+
+        X = np.array([state.expanding_priority for state in states])
+        X_T = (X/np.min(X))**(-1/self.T)
+        P = X_T/np.sum(X_T)
+
+        chosen_state = np.random.choice(states, p=P)
+        [self.open.push_node(node) for node in states if node != chosen_state]
+        self.close.add_node(chosen_state)
+        self.T *= self.T_scale_factor
+        return chosen_state

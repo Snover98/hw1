@@ -33,7 +33,8 @@ def plot_distance_and_expanded_wrt_weight_figure(
     # See documentation here:
     # https://matplotlib.org/2.0.0/api/_as_gen/matplotlib.axes.Axes.plot.html
     # You can also search google for additional examples.
-    raise NotImplemented()
+
+    ax1.plot(weights, total_distance, 'b-')
 
     # ax1: Make the y-axis label, ticks and tick labels match the line color.
     ax1.set_ylabel('distance traveled', color='b')
@@ -46,7 +47,9 @@ def plot_distance_and_expanded_wrt_weight_figure(
     # TODO: Plot the total expanded with ax2. Use `ax2.plot(...)`.
     # TODO: ax2: Make the y-axis label, ticks and tick labels match the line color.
     # TODO: Make this curve colored red with solid line style.
-    raise NotImplemented()
+    ax2.set_ylabel('states expanded', color='r')
+    ax2.tick_params('y', colors='r')
+    ax2.plot(weights, total_expanded, 'r-')
 
     fig.tight_layout()
     plt.show()
@@ -64,7 +67,16 @@ def run_astar_for_weights_in_range(heuristic_type: HeuristicFunctionType, proble
     #    the #expanded.
     # Call the function `plot_distance_and_expanded_by_weight_figure()`
     #  with that data.
-    raise NotImplemented()  # TODO: remove!
+
+    weights = np.linspace(0.5, 1, 20, True)
+
+    results = [AStar(heuristic_type, w).solve_problem(problem)
+               for w in weights]
+
+    costs, num_expanded = zip(*
+                              [(res.final_search_node.cost, res.nr_expanded_states) for res in results])
+
+    plot_distance_and_expanded_wrt_weight_figure(weights, costs, num_expanded)
 
 
 def map_problem():
@@ -82,13 +94,16 @@ def map_problem():
     #       solve the same `map_prob` with it and print the results (as before).
     # Notice: AStar constructor receives the heuristic *type* (ex: `MyHeuristicClass`),
     #         and not an instance of the heuristic (eg: not `MyHeuristicClass()`).
-    exit()  # TODO: remove!
+
+    astar = AStar(NullHeuristic)
+    res = astar.solve_problem(map_prob)
+    print(res)
 
     # Ex.11
     # TODO: create an instance of `AStar` with the `AirDistHeuristic`,
     #       solve the same `map_prob` with it and print the results (as before).
-    exit()  # TODO: remove!
-
+    res = AStar(AirDistHeuristic).solve_problem(map_prob)
+    print(res)
     # Ex.12
     # TODO:
     # 1. Complete the implementation of the function
@@ -98,7 +113,8 @@ def map_problem():
     #    (upper in this file).
     # 3. Call here the function `run_astar_for_weights_in_range()`
     #    with `AirDistHeuristic` and `map_prob`.
-    exit()  # TODO: remove!
+
+    run_astar_for_weights_in_range(AirDistHeuristic, map_prob)
 
 
 # --------------------------------------------------------------------
@@ -110,23 +126,26 @@ def relaxed_deliveries_problem():
     print()
     print('Solve the relaxed deliveries problem.')
 
-    big_delivery = DeliveriesProblemInput.load_from_file('big_delivery.in', roads)
+    big_delivery = DeliveriesProblemInput.load_from_file(
+        'big_delivery.in', roads)
     big_deliveries_prob = RelaxedDeliveriesProblem(big_delivery)
 
     # Ex.16
     # TODO: create an instance of `AStar` with the `MaxAirDistHeuristic`,
     #       solve the `big_deliveries_prob` with it and print the results (as before).
-    exit()  # TODO: remove!
+    res = AStar(MaxAirDistHeuristic).solve_problem(big_deliveries_prob)
+    print(res)
 
     # Ex.17
     # TODO: create an instance of `AStar` with the `MSTAirDistHeuristic`,
     #       solve the `big_deliveries_prob` with it and print the results (as before).
-    exit()  # TODO: remove!
+    astar_res = AStar(MSTAirDistHeuristic).solve_problem(big_deliveries_prob)
+    print(astar_res)
 
     # Ex.18
     # TODO: Call here the function `run_astar_for_weights_in_range()`
     #       with `MSTAirDistHeuristic` and `big_deliveries_prob`.
-    exit()  # TODO: remove!
+    # run_astar_for_weights_in_range(MSTAirDistHeuristic, big_deliveries_prob)
 
     # Ex.24
     # TODO:
@@ -148,14 +167,42 @@ def relaxed_deliveries_problem():
     #    (x-axis). Of course that the costs of A*, and deterministic
     #    greedy are not dependent with the iteration number, so
     #    these two should be represented by horizontal lines.
-    exit()  # TODO: remove!
+    stoch_results = [GreedyStochastic(MSTAirDistHeuristic).solve_problem(
+        big_deliveries_prob) for k in range(5)]
+
+    greedy_result = AStar(MSTAirDistHeuristic, 1).solve_problem(
+        big_deliveries_prob)
+
+    fig, ax1 = plt.subplots()
+
+    ax1.plot(
+        range(5), [res.final_search_node.cost for res in stoch_results], 'b-')
+
+    # ax1: Make the y-axis label, ticks and tick labels match the line color.
+    ax1.set_ylabel('total distance', color='b')
+    ax1.tick_params('y', colors='b')
+    ax1.set_xlabel('iteration number')
+
+    # Create another axis for the #expanded curve.
+    ax2 = ax1.twinx()
+
+    # TODO: Plot the total expanded with ax2. Use `ax2.plot(...)`.
+    # TODO: ax2: Make the y-axis label, ticks and tick labels match the line color.
+    # TODO: Make this curve colored red with solid line style.
+    ax2.set_ylabel('states expanded', color='r')
+    ax2.tick_params('y', colors='r')
+    ax2.plot(weights, total_expanded, 'r-')
+
+    fig.tight_layout()
+    plt.show()
 
 
 def strict_deliveries_problem():
     print()
     print('Solve the strict deliveries problem.')
 
-    small_delivery = DeliveriesProblemInput.load_from_file('small_delivery.in', roads)
+    small_delivery = DeliveriesProblemInput.load_from_file(
+        'small_delivery.in', roads)
     small_deliveries_strict_problem = StrictDeliveriesProblem(
         small_delivery, roads, inner_problem_solver=AStar(AirDistHeuristic))
 
@@ -171,7 +218,7 @@ def strict_deliveries_problem():
 
 
 def main():
-    map_problem()
+   # map_problem()
     relaxed_deliveries_problem()
     strict_deliveries_problem()
 
