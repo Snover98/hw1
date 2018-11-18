@@ -139,8 +139,8 @@ def relaxed_deliveries_problem():
     # Ex.17
     # TODO: create an instance of `AStar` with the `MSTAirDistHeuristic`,
     #       solve the `big_deliveries_prob` with it and print the results (as before).
-    astar_res = AStar(MSTAirDistHeuristic).solve_problem(big_deliveries_prob)
-    print(astar_res)
+    res = AStar(MSTAirDistHeuristic).solve_problem(big_deliveries_prob)
+    print(res)
 
     # Ex.18
     # TODO: Call here the function `run_astar_for_weights_in_range()`
@@ -167,31 +167,42 @@ def relaxed_deliveries_problem():
     #    (x-axis). Of course that the costs of A*, and deterministic
     #    greedy are not dependent with the iteration number, so
     #    these two should be represented by horizontal lines.
-    stoch_results = [GreedyStochastic(MSTAirDistHeuristic).solve_problem(
-        big_deliveries_prob) for k in range(5)]
+
+    optimal_result = AStar(MSTAirDistHeuristic).solve_problem(
+        big_deliveries_prob).final_search_node.cost
 
     greedy_result = AStar(MSTAirDistHeuristic, 1).solve_problem(
-        big_deliveries_prob)
+        big_deliveries_prob).final_search_node.cost
+
+    num_iterations = 5  # TODO: set range 100
+
+    # run Anytime Greedy Stochastic Algorithm
+    stoch_cost_results = [GreedyStochastic(MSTAirDistHeuristic).solve_problem(
+        big_deliveries_prob).final_search_node.cost for k in range(num_iterations)]
+
+    # set result for each iteration i as minimun of costs found in iterations{0,...,i}
+    anytime_results = [stoch_cost_results[0]]
+    for idx, cost in (enumerate(stoch_cost_results[1:])):
+        anytime_results.append(min(cost, anytime_results[idx]))
 
     fig, ax1 = plt.subplots()
 
-    ax1.plot(
-        range(5), [res.final_search_node.cost for res in stoch_results], 'b-')
+    # show cost as function of iteration number
+    ax1.plot(range(num_iterations), anytime_results,
+             'b-', label='Anytime Greedy Stochastic Algorithm')
 
-    # ax1: Make the y-axis label, ticks and tick labels match the line color.
-    ax1.set_ylabel('total distance', color='b')
+    ax1.set_ylabel('distance traveled', color='b')
     ax1.tick_params('y', colors='b')
-    ax1.set_xlabel('iteration number')
+    ax1.set_xlabel('iteration')
 
-    # Create another axis for the #expanded curve.
-    ax2 = ax1.twinx()
+    # show greedy and Astar results
+    plt.axhline(greedy_result, color='r',
+                linestyle='-', label='Greedy Solution')
+    plt.axhline(optimal_result, color='g',
+                linestyle='-', label='Optimal Solution')
 
-    # TODO: Plot the total expanded with ax2. Use `ax2.plot(...)`.
-    # TODO: ax2: Make the y-axis label, ticks and tick labels match the line color.
-    # TODO: Make this curve colored red with solid line style.
-    ax2.set_ylabel('states expanded', color='r')
-    ax2.tick_params('y', colors='r')
-    ax2.plot(weights, total_expanded, 'r-')
+    # show legend
+    plt.legend()
 
     fig.tight_layout()
     plt.show()
