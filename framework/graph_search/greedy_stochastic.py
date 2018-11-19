@@ -21,6 +21,7 @@ class GreedyStochastic(BestFirstSearch):
         self.heuristic_function = self.heuristic_function_type(problem)
 
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
+        # if the state wasn't developed yet, add it to open
         if not (self.open.has_state(successor_node.state) or self.close.has_state(successor_node.state)):
             self.open.push_node(successor_node)
 
@@ -28,6 +29,7 @@ class GreedyStochastic(BestFirstSearch):
         """
         Remember: `GreedyStochastic` is greedy.
         """
+        # just use the heuristic func, this is greedy!
         return self.heuristic_function.estimate(search_node.state)
 
     def _extract_next_search_node_to_expand(self) -> Optional[SearchNode]:
@@ -44,20 +46,29 @@ class GreedyStochastic(BestFirstSearch):
                 of these popped items. The other items have to be
                 pushed again into that queue.
         """
+        # check if there are any open nodes
         if self.open.is_empty():
             return None
 
+        # take the best N nodes (or all of them if there are less open nodes than N)
         nodes = [self.open.pop_next_node() for _ in range(min(self.N, len(self.open)))]
 
+        # if any of the nodes is a target return said target
         for node in [node for node in nodes if node.expanding_priority == 0]:
             return node
 
+        # make arrays for the heuristic values and values after dividing by alpha and going to the power of -1/T
         X = np.array([node.expanding_priority for node in nodes])
         X_T = (X/np.min(X))**(-1/self.T)
+        # normalize for correct probability
         P = X_T/np.sum(X_T)
 
+        # use np.random.choice to choose a node according to P
         chosen_node = np.random.choice(nodes, p=P)
+        # return all of the other nodes to open
         [self.open.push_node(node) for node in nodes if node.state != chosen_node.state]
+        # add the chosen node to close
         self.close.add_node(chosen_node)
+        # change T by the factor
         self.T *= self.T_scale_factor
         return chosen_node
