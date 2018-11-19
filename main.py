@@ -199,11 +199,11 @@ def relaxed_deliveries_problem():
     plt.axhline(greedy_result, color='r',
                 linestyle='-', label='Greedy Solution')
     plt.axhline(optimal_result, color='g',
-                linestyle='-', label='Optimal Solution')
+                linestyle='-', label='A* Solution')
 
     #show greedt stochastic
     ax1.plot(range(num_iterations), stoch_cost_results,
-             'k-', label='Anytime Greedy Stochastic Algorithm')
+             'k-', label='Greedy Stochastic Algorithm')
 
     # show legend
     plt.legend()
