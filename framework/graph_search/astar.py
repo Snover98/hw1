@@ -71,16 +71,20 @@ class AStar(BestFirstSearch):
                   but still could be improved.
         """
         open_node = self.open.get_node_by_state(successor_node.state)
-
+        # if the node is in open
         if open_node is not None:
+            # if the new node as a better priority, replace the old with the new
             if open_node.expanding_priority > successor_node.expanding_priority:
                 self.open.extract_node(open_node)
                 self.open.push_node(successor_node)
         else:
             close_node = self.close.get_node_by_state(successor_node.state)
+            #if the node is in close
             if close_node is not None:
+                # if the new node as a better priority, replace the old with the new and put it in open
                 if close_node.expanding_priority > successor_node.expanding_priority:
                     self.close.remove_node(close_node)
                     self.open.push_node(successor_node)
+            # if the node wasn't developed yet
             else:
                 self.open.push_node(successor_node)
