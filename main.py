@@ -174,11 +174,11 @@ def relaxed_deliveries_problem():
     greedy_result = AStar(MSTAirDistHeuristic, 1).solve_problem(
         big_deliveries_prob).final_search_node.cost
 
-    num_iterations = 5  # TODO: set range 100
+    num_iterations = 100
 
     # run Anytime Greedy Stochastic Algorithm
     stoch_cost_results = [GreedyStochastic(MSTAirDistHeuristic).solve_problem(
-        big_deliveries_prob).final_search_node.cost for k in range(num_iterations)]
+        big_deliveries_prob).final_search_node.cost for _ in range(num_iterations)]
 
     # set result for each iteration i as minimun of costs found in iterations{0,...,i}
     anytime_results = [stoch_cost_results[0]]
@@ -200,6 +200,10 @@ def relaxed_deliveries_problem():
                 linestyle='-', label='Greedy Solution')
     plt.axhline(optimal_result, color='g',
                 linestyle='-', label='Optimal Solution')
+
+    #show greedt stochastic
+    ax1.plot(range(num_iterations), stoch_cost_results,
+             'k-', label='Anytime Greedy Stochastic Algorithm')
 
     # show legend
     plt.legend()
