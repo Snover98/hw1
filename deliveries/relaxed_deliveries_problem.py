@@ -100,14 +100,19 @@ class RelaxedDeliveriesProblem(GraphProblem):
         """
         assert isinstance(state_to_expand, RelaxedDeliveriesState)
 
+        # list of possible legal stop points from the current junction
         legal_junctions = self.possible_stop_points.difference(
             state_to_expand.dropped_so_far, {state_to_expand.current_location})
 
+        # for every legal stop point we have enough fuel to get to
         for junction in [j for j in legal_junctions if j.calc_air_distance_from(state_to_expand.current_location) <= state_to_expand.fuel]:
+            # just here to make state in this scope
             state = None
+            # if the junction is a gas station, make the state accordingly
             if junction in self.gas_stations:
                 state = RelaxedDeliveriesState(
                     junction, state_to_expand.dropped_so_far, self.gas_tank_capacity)
+            # if the junction is a drop point, make the state accordingly
             else:
                 new_fuel = state_to_expand.fuel - \
                     junction.calc_air_distance_from(
@@ -125,6 +130,7 @@ class RelaxedDeliveriesProblem(GraphProblem):
         """
         assert isinstance(state, RelaxedDeliveriesState)
 
+        # this state is a goal if we dropped all of the orders
         return state.dropped_so_far == self.drop_points
 
     def solution_additional_str(self, result: 'SearchResult') -> str:
