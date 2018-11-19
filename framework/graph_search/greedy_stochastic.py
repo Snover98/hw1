@@ -44,11 +44,11 @@ class GreedyStochastic(BestFirstSearch):
                 of these popped items. The other items have to be
                 pushed again into that queue.
         """
-        if(self.open.is_empty()):
+        if self.open.is_empty():
             return None
 
         states = [self.open.pop_next_node()
-                  for i in range(min(self.N, len(self.open)))]
+                  for _ in range(min(self.N, len(self.open)))]
 
         for state in [state for state in states if state.expanding_priority == 0]:
             return state
@@ -58,7 +58,7 @@ class GreedyStochastic(BestFirstSearch):
         P = X_T/np.sum(X_T)
 
         chosen_state = np.random.choice(states, p=P)
-        [self.open.push_node(node) for node in states if node != chosen_state]
+        [self.open.push_node(node) for node in states if node.state != chosen_state.state]
         self.close.add_node(chosen_state)
         self.T *= self.T_scale_factor
         return chosen_state
