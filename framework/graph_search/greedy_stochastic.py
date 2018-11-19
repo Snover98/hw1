@@ -47,18 +47,17 @@ class GreedyStochastic(BestFirstSearch):
         if self.open.is_empty():
             return None
 
-        states = [self.open.pop_next_node()
-                  for _ in range(min(self.N, len(self.open)))]
+        nodes = [self.open.pop_next_node() for _ in range(min(self.N, len(self.open)))]
 
-        for state in [state for state in states if state.expanding_priority == 0]:
-            return state
+        for node in [node for node in nodes if node.expanding_priority == 0]:
+            return node
 
-        X = np.array([state.expanding_priority for state in states])
+        X = np.array([node.expanding_priority for node in nodes])
         X_T = (X/np.min(X))**(-1/self.T)
         P = X_T/np.sum(X_T)
 
-        chosen_state = np.random.choice(states, p=P)
-        [self.open.push_node(node) for node in states if node.state != chosen_state.state]
-        self.close.add_node(chosen_state)
+        chosen_node = np.random.choice(nodes, p=P)
+        [self.open.push_node(node) for node in nodes if node.state != chosen_node.state]
+        self.close.add_node(chosen_node)
         self.T *= self.T_scale_factor
-        return chosen_state
+        return chosen_node
