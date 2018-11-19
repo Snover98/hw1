@@ -21,7 +21,7 @@ class GreedyStochastic(BestFirstSearch):
         self.heuristic_function = self.heuristic_function_type(problem)
 
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
-        if not (self.open.has_state(successor_node.state) or self.close.has_state(successor_node)):
+        if not (self.open.has_state(successor_node.state) or self.close.has_state(successor_node.state)):
             self.open.push_node(successor_node)
 
     def _calc_node_expanding_priority(self, search_node: SearchNode) -> float:
