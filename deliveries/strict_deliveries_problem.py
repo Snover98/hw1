@@ -3,7 +3,7 @@ from framework.ways import *
 from .map_problem import MapProblem
 from .deliveries_problem_input import DeliveriesProblemInput
 from .relaxed_deliveries_problem import RelaxedDeliveriesState, RelaxedDeliveriesProblem
-
+from .map_heuristics import AirDistHeuristic
 from typing import Set, FrozenSet, Optional, Iterator, Tuple, Union
 
 
@@ -18,7 +18,15 @@ class StrictDeliveriesState(RelaxedDeliveriesState):
         If you believe you need to modify the state for the strict
          problem in some sense, please go ahead and do so.
     """
-    pass
+
+    def __init__(self, current_location: Junction,
+                 dropped_so_far: Union[Set[Junction], FrozenSet[Junction]],
+                 fuel: float, relaxed_problem: RelaxedDeliveriesProblem):
+        super(StrictDeliveriesState, self).__init__(
+            current_location, dropped_so_far, fuel)
+        self.relaxed_problem = relaxed_problem
+        self.relaxed_problem.start_point = self.current_location
+        self.relaxed_problem.initial_state = self
 
 
 class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
@@ -31,8 +39,9 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
     def __init__(self, problem_input: DeliveriesProblemInput, roads: Roads,
                  inner_problem_solver: GraphProblemSolver, use_cache: bool = True):
         super(StrictDeliveriesProblem, self).__init__(problem_input)
+        self.my_relaxed = RelaxedDeliveriesProblem(problem_input)
         self.initial_state = StrictDeliveriesState(
-            problem_input.start_point, frozenset(), problem_input.gas_tank_init_fuel)
+            problem_input.start_point, frozenset(), problem_input.gas_tank_init_fuel, self.my_relaxed)
         self.inner_problem_solver = inner_problem_solver
         self.roads = roads
         self.use_cache = use_cache
@@ -56,6 +65,23 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
             self.nr_cache_misses += 1
         return self._cache.get(key)
 
+    def _junction_distance(self, source_junction: Junction, destination_junction: Junction)->float:
+        cache_index = (min(source_junction.index, destination_junction.index),
+                       (max(source_junction.index, destination_junction.index)))
+
+        if self.use_cache:
+            cache_result = self._get_from_cache(cache_index)
+
+            if cache_result is not None:
+                return cache_result
+
+        result = self.inner_problem_solver.solve_problem(MapProblem(
+            self.roads, source_junction.index, destination_junction.index)).final_search_node.cost
+
+        if self.use_cache:
+            self._insert_to_cache(cache_index, result)
+        return result
+
     def expand_state_with_costs(self, state_to_expand: GraphProblemState) -> Iterator[Tuple[GraphProblemState, float]]:
         """
         TODO: implement this method!
@@ -68,7 +94,30 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
         """
         assert isinstance(state_to_expand, StrictDeliveriesState)
 
-        raise NotImplemented()  # TODO: remove!
+        # list of possible legal stop points from the current junction
+        legal_junctions = self.possible_stop_points.difference(
+            state_to_expand.dropped_so_far, {state_to_expand.current_location})
+
+        # for every legal stop point we have enough fuel to get to
+        for junction in [j for j in legal_junctions if self._junction_distance(state_to_expand.current_location, j) <= state_to_expand.fuel]:
+            # just here to make state in this scope
+            state = None
+            # if the junction is a gas station, make the state accordingly
+            if junction in self.gas_stations:
+                state = StrictDeliveriesState(
+                    junction, state_to_expand.dropped_so_far, self.gas_tank_capacity, self.my_relaxed)
+            # if the junction is a drop point, make the state accordingly
+            else:
+                new_fuel = state_to_expand.fuel - \
+                    self._junction_distance(
+                        state_to_expand.current_location, junction)
+
+                state = StrictDeliveriesState(
+                    junction, state_to_expand.dropped_so_far.union({junction}), new_fuel, self.my_relaxed)
+            self
+
+            yield state,  self._junction_distance(
+                state_to_expand.current_location, junction)
 
     def is_goal(self, state: GraphProblemState) -> bool:
         """
@@ -77,4 +126,4 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
         """
         assert isinstance(state, StrictDeliveriesState)
 
-        raise NotImplemented()  # TODO: remove!
+        return super(StrictDeliveriesProblem, self).is_goal(state)

@@ -201,7 +201,7 @@ def relaxed_deliveries_problem():
     plt.axhline(optimal_result, color='g',
                 linestyle='-', label='A* Solution')
 
-    #show greedt stochastic
+    # show greedt stochastic
     ax1.plot(range(num_iterations), stoch_cost_results,
              'k-', label='Greedy Stochastic Algorithm')
 
@@ -224,17 +224,21 @@ def strict_deliveries_problem():
     # Ex.26
     # TODO: Call here the function `run_astar_for_weights_in_range()`
     #       with `MSTAirDistHeuristic` and `big_deliveries_prob`.
-    exit()  # TODO: remove!
+    # run_astar_for_weights_in_range(
+    #   MSTAirDistHeuristic, small_deliveries_strict_problem)
 
     # Ex.28
     # TODO: create an instance of `AStar` with the `RelaxedDeliveriesHeuristic`,
     #       solve the `small_deliveries_strict_problem` with it and print the results (as before).
-    exit()  # TODO: remove!
+    res = AStar(RelaxedDeliveriesHeuristic).solve_problem(
+        small_deliveries_strict_problem)
+
+    print(res)
 
 
 def main():
    # map_problem()
-    relaxed_deliveries_problem()
+    # relaxed_deliveries_problem()
     strict_deliveries_problem()
 
 

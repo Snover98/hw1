@@ -46,7 +46,6 @@ class AStar(BestFirstSearch):
         Remember: In Weighted-A* the f-score is defined by ((1-w) * cost) + (w * h(state)).
         Notice: You may use `search_node.cost`, `self.heuristic_weight`, and `self.heuristic_function`.
         """
-
         f_cost = (1-self.heuristic_weight) * search_node.cost + \
             self.heuristic_weight * \
             self.heuristic_function.estimate(search_node.state)
@@ -79,7 +78,7 @@ class AStar(BestFirstSearch):
                 self.open.push_node(successor_node)
         else:
             close_node = self.close.get_node_by_state(successor_node.state)
-            #if the node is in close
+            # if the node is in close
             if close_node is not None:
                 # if the new node as a better priority, replace the old with the new and put it in open
                 if close_node.expanding_priority > successor_node.expanding_priority:
