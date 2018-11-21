@@ -19,15 +19,6 @@ class StrictDeliveriesState(RelaxedDeliveriesState):
          problem in some sense, please go ahead and do so.
     """
 
-    def __init__(self, current_location: Junction,
-                 dropped_so_far: Union[Set[Junction], FrozenSet[Junction]],
-                 fuel: float, relaxed_problem: RelaxedDeliveriesProblem):
-        super(StrictDeliveriesState, self).__init__(
-            current_location, dropped_so_far, fuel)
-        self.relaxed_problem = relaxed_problem
-        self.relaxed_problem.start_point = self.current_location
-        self.relaxed_problem.initial_state = self
-
 
 class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
     """
@@ -41,11 +32,12 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
         super(StrictDeliveriesProblem, self).__init__(problem_input)
         self.my_relaxed = RelaxedDeliveriesProblem(problem_input)
         self.initial_state = StrictDeliveriesState(
-            problem_input.start_point, frozenset(), problem_input.gas_tank_init_fuel, self.my_relaxed)
+            problem_input.start_point, frozenset(), problem_input.gas_tank_init_fuel)
         self.inner_problem_solver = inner_problem_solver
         self.roads = roads
         self.use_cache = use_cache
         self._init_cache()
+        self.problem_input = problem_input
 
     def _init_cache(self):
         self._cache = {}
@@ -105,7 +97,7 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
             # if the junction is a gas station, make the state accordingly
             if junction in self.gas_stations:
                 state = StrictDeliveriesState(
-                    junction, state_to_expand.dropped_so_far, self.gas_tank_capacity, self.my_relaxed)
+                    junction, state_to_expand.dropped_so_far, self.gas_tank_capacity)
             # if the junction is a drop point, make the state accordingly
             else:
                 new_fuel = state_to_expand.fuel - \
@@ -113,7 +105,7 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
                         state_to_expand.current_location, junction)
 
                 state = StrictDeliveriesState(
-                    junction, state_to_expand.dropped_so_far.union({junction}), new_fuel, self.my_relaxed)
+                    junction, state_to_expand.dropped_so_far.union({junction}), new_fuel)
             self
 
             yield state,  self._junction_distance(

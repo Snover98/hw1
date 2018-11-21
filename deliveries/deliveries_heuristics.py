@@ -81,7 +81,22 @@ class RelaxedDeliveriesHeuristic(HeuristicFunction):
         assert isinstance(self.problem, StrictDeliveriesProblem)
         assert isinstance(state, StrictDeliveriesState)
 
-        if state.relaxed_problem.is_goal(state):
-            return 0
+        orig_input: DeliveriesProblemInput = self.problem.problem_input
 
-        return AStar(MSTAirDistHeuristic).solve_problem(state.relaxed_problem).final_search_node.cost
+        relaxed_problem_input: DeliveriesProblemInput = DeliveriesProblemInput(orig_input.input_name, state.current_location, orig_input.drop_points.difference(
+            state.dropped_so_far), orig_input.gas_stations, orig_input.gas_tank_capacity, state.fuel)
+
+    # input_name: str
+    # start_point: Junction
+    # drop_points: FrozenSet[Junction]
+    # gas_stations: FrozenSet[Junction]
+    # gas_tank_capacity: float
+    # gas_tank_init_fuel: float
+
+        final_node = AStar(MSTAirDistHeuristic).solve_problem(
+            RelaxedDeliveriesProblem(relaxed_problem_input)).final_search_node
+
+        if final_node is None:
+            return np.inf
+
+        return final_node.cost

@@ -78,6 +78,7 @@ class RelaxedDeliveriesProblem(GraphProblem):
 
     def __init__(self, problem_input: DeliveriesProblemInput):
         self.name += '({})'.format(problem_input.input_name)
+        # TODO: why is it here in the first place
         assert problem_input.start_point not in problem_input.drop_points
         initial_state = RelaxedDeliveriesState(
             problem_input.start_point, frozenset(), problem_input.gas_tank_init_fuel)
