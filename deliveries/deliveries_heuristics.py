@@ -81,21 +81,17 @@ class RelaxedDeliveriesHeuristic(HeuristicFunction):
         assert isinstance(self.problem, StrictDeliveriesProblem)
         assert isinstance(state, StrictDeliveriesState)
 
+        # make a new problem input according to the state
         orig_input: DeliveriesProblemInput = self.problem.problem_input
 
         relaxed_problem_input: DeliveriesProblemInput = DeliveriesProblemInput(orig_input.input_name, state.current_location, orig_input.drop_points.difference(
             state.dropped_so_far), orig_input.gas_stations, orig_input.gas_tank_capacity, state.fuel)
 
-    # input_name: str
-    # start_point: Junction
-    # drop_points: FrozenSet[Junction]
-    # gas_stations: FrozenSet[Junction]
-    # gas_tank_capacity: float
-    # gas_tank_init_fuel: float
-
+        # get the final node of the path
         final_node = AStar(MSTAirDistHeuristic).solve_problem(
             RelaxedDeliveriesProblem(relaxed_problem_input)).final_search_node
 
+        # if there is no path, return infinity
         if final_node is None:
             return np.inf
 
