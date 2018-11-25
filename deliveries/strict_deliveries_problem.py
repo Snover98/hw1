@@ -58,8 +58,7 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
         return self._cache.get(key)
 
     def _junction_distance(self, source_junction: Junction, destination_junction: Junction)->float:
-        cache_index = (min(source_junction.index, destination_junction.index),
-                       (max(source_junction.index, destination_junction.index)))
+        cache_index = (source_junction.index, destination_junction.index)
 
         if self.use_cache:
             cache_result = self._get_from_cache(cache_index)
@@ -106,7 +105,6 @@ class StrictDeliveriesProblem(RelaxedDeliveriesProblem):
 
                 state = StrictDeliveriesState(
                     junction, state_to_expand.dropped_so_far.union({junction}), new_fuel)
-            self
 
             yield state,  self._junction_distance(
                 state_to_expand.current_location, junction)
