@@ -11,8 +11,6 @@ for t in T:
         P[idx].append(X_T[idx]/np.sum(X_T))
 
 
-print(P)
-
 for i in range(len(X)):
     plt.plot(T, P[i], label=str(X[i]))
 
